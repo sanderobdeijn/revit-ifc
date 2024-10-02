@@ -46,19 +46,21 @@ namespace BIM.IFC.Export.UI
       // New schema based on json for the entire configuration instead of individual item
       private Schema m_jsonSchema = null;
       private static Guid s_jsonSchemaId = new Guid("C2A3E6FE-CE51-4F35-8FF1-20C34567B687");
+      private Document m_Document;
 
       /// <summary>
       /// Constructs a default map.
       /// </summary>
-      public IFCExportConfigurationsMap()
+      public IFCExportConfigurationsMap(Document document)
       {
+         m_Document = document;
       }
 
       /// <summary>
       /// Constructs a new map as a copy of an existing one.
       /// </summary>
       /// <param name="map">The specific map to copy.</param>
-      public IFCExportConfigurationsMap(IFCExportConfigurationsMap map)
+      public IFCExportConfigurationsMap(IFCExportConfigurationsMap map, Document document) : this (document)
       {
          // Deep copy
          foreach (IFCExportConfiguration value in map.Values)
@@ -420,7 +422,7 @@ namespace BIM.IFC.Export.UI
             IList<DataStorage> oldSavedConfigurations = GetSavedConfigurations(m_OldSchema);
             if (oldSavedConfigurations.Count > 0)
             {
-               Transaction deleteTransaction = new Transaction(IFCCommandOverrideApplication.TheDocument,
+               Transaction deleteTransaction = new Transaction(m_Document,
                    Properties.Resources.DeleteOldSetups);
                try
                {
@@ -430,7 +432,7 @@ namespace BIM.IFC.Export.UI
                   {
                      dataStorageToDelete.Add(dataStorage.Id);
                   }
-                  IFCCommandOverrideApplication.TheDocument.Delete(dataStorageToDelete);
+                  m_Document.Delete(dataStorageToDelete);
                   deleteTransaction.Commit();
                }
                catch (System.Exception)
@@ -451,7 +453,7 @@ namespace BIM.IFC.Export.UI
             IList<DataStorage> oldSavedConfigurations = GetSavedConfigurations(m_mapSchema);
             if (oldSavedConfigurations.Count > 0)
             {
-               Transaction deleteTransaction = new Transaction(IFCCommandOverrideApplication.TheDocument,
+               Transaction deleteTransaction = new Transaction(m_Document,
                    Properties.Resources.DeleteOldSetups);
                try
                {
@@ -461,7 +463,7 @@ namespace BIM.IFC.Export.UI
                   {
                      dataStorageToDelete.Add(dataStorage.Id);
                   }
-                  IFCCommandOverrideApplication.TheDocument.Delete(dataStorageToDelete);
+                  m_Document.Delete(dataStorageToDelete);
                   deleteTransaction.Commit();
                }
                catch (System.Exception)
@@ -518,7 +520,7 @@ namespace BIM.IFC.Export.UI
          if (setupsToSave.Count > 0)
          {
             // Overwrite all saved configs with the new list
-            Transaction transaction = new Transaction(IFCCommandOverrideApplication.TheDocument, Properties.Resources.UpdateExportSetups);
+            Transaction transaction = new Transaction(m_Document, Properties.Resources.UpdateExportSetups);
             try
             {
                transaction.Start(Properties.Resources.SaveConfigurationChanges);
@@ -530,7 +532,7 @@ namespace BIM.IFC.Export.UI
                   DataStorage configStorage;
                   if (savedConfigurationIndex >= savedConfigurationCount)
                   {
-                     configStorage = DataStorage.Create(IFCCommandOverrideApplication.TheDocument);
+                     configStorage = DataStorage.Create(m_Document);
                   }
                   else
                   {
@@ -551,7 +553,7 @@ namespace BIM.IFC.Export.UI
                   elementsToDelete.Add(configStorage.Id);
                }
                if (elementsToDelete.Count > 0)
-                  IFCCommandOverrideApplication.TheDocument.Delete(elementsToDelete);
+                  m_Document.Delete(elementsToDelete);
 
                transaction.Commit();
             }
@@ -569,7 +571,7 @@ namespace BIM.IFC.Export.UI
       /// <returns>The saved configurations.</returns>
       private IList<DataStorage> GetSavedConfigurations(Schema schema)
       {
-         FilteredElementCollector collector = new FilteredElementCollector(IFCCommandOverrideApplication.TheDocument);
+         FilteredElementCollector collector = new FilteredElementCollector(m_Document);
          collector.OfClass(typeof(DataStorage));
          Func<DataStorage, bool> hasTargetData = ds => (ds.GetEntity(schema) != null && ds.GetEntity(schema).IsValid());
 

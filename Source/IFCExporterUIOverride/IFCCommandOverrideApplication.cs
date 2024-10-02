@@ -147,15 +147,6 @@ namespace BIM.IFC.Export.UI
       public static bool PotentiallyUpdatedConfigurations { get; set; }
 
       /// <summary>
-      /// The active document for this export.
-      /// </summary>
-      public static Document TheDocument
-      {
-         get;
-         protected set;
-      }
-
-      /// <summary>
       /// The last successful export location
       /// </summary>
       private static String m_mruExportPath = null;
@@ -203,11 +194,11 @@ namespace BIM.IFC.Export.UI
             UIDocument uiDoc = uiApp.ActiveUIDocument;
             Document activeDoc = uiDoc.Document;
 
-            TheDocument = activeDoc;
+            //TheDocument = activeDoc;
 
             // Note that when exporting multiple documents, we are still going to use the configurations from the
             // active document.  
-            IFCExportConfigurationsMap configurationsMap = new IFCExportConfigurationsMap();
+            IFCExportConfigurationsMap configurationsMap = new IFCExportConfigurationsMap(activeDoc);
             configurationsMap.AddOrReplace(IFCExportConfiguration.GetInSession());
             configurationsMap.AddBuiltInConfigurations();
             configurationsMap.AddSavedConfigurations();
@@ -263,8 +254,6 @@ namespace BIM.IFC.Export.UI
 
                foreach (Document document in mainWindow.DocumentsToExport)
                {
-                  TheDocument = document;
-
                   // Call this before the Export IFC transaction starts, as it has its own transaction.
                   IFCClassificationMgr.DeleteObsoleteSchemas(document);
 
